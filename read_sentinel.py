@@ -1,11 +1,16 @@
-import dask.distributed 
+import dask.distributed
 import dask.utils
 import planetary_computer as pc
 from pystac_client import Client
 import os
 from odc.stac import configure_rio, stac_load
 import csv
+import argparse
 
+argParser = argparse.ArgumentParser("Sentinel 2 L2A downloader from Planetary Computer.")
+argParser.add_argument("-f", "--file",  default="ids.tsv", help="File with ids for the scenes to be downloaded.")
+argParser.add_argument("-c", "--cpus", default=-1, help="Chunk size for dask distribution.")
+args = argParser.parse_args()
 
 cfg = {
     "sentinel-2-l2a":{
@@ -34,26 +39,25 @@ def to_float(imagery):
         return _imagery
     return _imagery.where(_imagery != nodata)
 
-        
-if __name__ == "__main__":
+if __name__ == "__main__":    
     client = dask.distributed.Client()
-    configure_rio(cloud_defaults=True, client=client)
+    configure_rio(cloud_defaults=True, verbose=True, client=client)
     
     catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1", modifier = pc.sign_inplace)
     sids = []
     
-    # Define the path to the TSV file containing scene IDs
-    sids_path = os.path.join(script_directory, "ids.tsv")
-    with open('ids.tsv', 'r', newline='') as tsvfile:
+    # Define the path to the TSV file containing scene IDs...
+    input_file = args.file
+    sids_path = os.path.join(script_directory, input_file)
+    with open(input_file, 'r', newline='') as tsvfile:
         tsvreader = csv.reader(tsvfile, delimiter='\t')
         
-        # Add scene IDs to the list
+        # Add scene IDs to the list...
         for row in tsvreader:
             sids.append(row[0])
             
-            
     for sid in sids:
-        # Extract the year and month from the scene ID
+        # Extract the year and month from the scene ID...
         year_month = sid.split("_")[2][:6]
         year = year_month[:4]
         month = year_month[4:]
@@ -64,7 +68,7 @@ if __name__ == "__main__":
             )
         items = list(query.items())
         
-        # Check if the scene was found
+        # Check if the scene was found...
         if len(items) != 0:
             print(f"Found: {sid} scene")
         
@@ -72,12 +76,13 @@ if __name__ == "__main__":
         
         try:
             imagery = stac_load(
-            items, 
-            bands=["B02","B03","B04","B05","B06","B07","B08","B11","B12","SCL"],
-            chunks={"x":2048, "y":2048}, 
-            stac_cfg=cfg,
-            path_url = pc.sign,
-            resolution=resolution,
+                items, 
+                bands=["B02","B03","B04","B05","B06","B07","B08","B11","B12","SCL"],
+                #bands=["SCL"],
+                chunks={"x": 2048, "y": 2048}, 
+                stac_cfg=cfg,
+                patch_url = pc.sign,
+                resolution=resolution,
             )
             bands = list(imagery.data_vars)
             print(f"Bands: {','.join(bands)}")
