@@ -89,7 +89,7 @@ if __name__ == "__main__":
                         imagery = stac_load(
                             items, 
                             #bands=["B02","B03","B04","B05","B06","B07","B08","B11","B12","SCL"],
-                            bands=["SCL"],
+                            bands=["B12"],
                             chunks={"x": 2048, "y": 2048}, 
                             stac_cfg=cfg,
                             patch_url = pc.sign,
