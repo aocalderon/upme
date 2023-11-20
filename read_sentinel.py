@@ -101,7 +101,7 @@ if __name__ == "__main__":
                         for band in bands:
                             print(f"INFO\t{clocktime()}\t{sid}\t{band}\tSTART")
                             output_path = os.path.join(output_folder, f"{sid}_{band}.tif")
-                            to_float(imagery.get(band)).compute().odc.write_cog(output_path, overwrite=True)
+                            to_float(imagery.get(band)).compute().odc.write_cog(output_path, overwrite=False)
                             print(f"INFO\t{clocktime()}\t{sid}\t{band}\tEND")
                         print(f"INFO\t{clocktime()}\t{sid}\tSCENE\tDONE")
                         
