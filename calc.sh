@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #S2A_MSIL2A_20230127T150721_R082_T19NBG_20230128T231543
-BANDS_PATH="/home/acald013/opt/upme/bands"
-OUTPUT_PATH="/home/acald013/tmp"
+BANDS_PATH="/opt/upme/bands"
+OUTPUT_PATH="/tmp"
 SID=$1
 NUM_THREADS=2
 BAND_NUMBER=$2

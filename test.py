@@ -7,7 +7,6 @@ performance.
 
 With -j 4, the program returns in about 1/4 the time as with -j 1.
 """
-
 import concurrent.futures
 import multiprocessing
 import threading
