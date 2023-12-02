@@ -14,12 +14,14 @@ with rasterio.open(infile) as src:
     width = band1.shape[1]
     cols, rows = np.meshgrid(np.arange(width), np.arange(height))
     xs, ys = rasterio.transform.xy(src.transform, rows, cols)
-    print(np.array(xs).flatten())
+    #print(np.array(xs).flatten())
     vs = src.read(1)[rows,cols]
     lons = np.array(xs).flatten()
     lats = np.array(ys).flatten()
     vals = np.array(vs).flatten()
     d = {"lon": lons, "lat": lats, "value": vals}
     df = pd.DataFrame(d)
-    print(df)
+    df = df[(df['value'] > 0.0)]
+    #print(df)
+    print(f"Saving {infile}...")
     df.to_csv("/tmp/raster.tsv", sep = "\t", index = False)

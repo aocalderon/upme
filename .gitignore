@@ -1,3 +1,4 @@
 *.tif
 nohup.out
 *~
+bands/*
