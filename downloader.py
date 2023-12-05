@@ -4,15 +4,15 @@ import planetary_computer as pc
 from pystac_client import Client
 import os
 from odc.stac import configure_rio, stac_load
-import csv
 import argparse
 from datetime import datetime
 
 argParser = argparse.ArgumentParser("Sentinel 2 L2A downloader from Planetary Computer.")
 argParser.add_argument("-i", "--id", help="Id of the scene to be downloaded.")
-argParser.add_argument("-b", "--bands",  default="B02,B03,B04,B08", help="Bands for the scene to be downloaded.")
+argParser.add_argument("-b", "--band",  help="Band of the scene to be downloaded.")
 argParser.add_argument("-w", "--workers", default=1, help="Number of workers.")
 argParser.add_argument("-r", "--resolution", default=10, help="Spatial resolution for resampling (in meters).")
+argParser.add_argument("-o", "--output", default="/tmp", help="Path for dowonload.")
 args = argParser.parse_args()
 
 cfg = {
@@ -24,16 +24,6 @@ cfg = {
     },
     "*":{"warnings":"ignore"},
 }
-
-# Get the directory of the script
-script_directory = os.path.dirname(os.path.abspath(__file__))
-
-# Define the output folder for storing downloaded bands
-output_folder = os.path.join(script_directory, "bands")
-
-# Create the output folder if it doesn't exist
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
 
 def clocktime():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -55,7 +45,7 @@ if __name__ == "__main__":
             catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1", modifier = pc.sign_inplace)
             
             sid = args.id 
-            ban = args.bands.split(",")
+            ban = [ args.band ]
     
             print(f"INFO\t{clocktime()}\tBULK\tDOWNLOAD\tSTART")
             # Extract the year and month from the scene ID...
@@ -89,7 +79,7 @@ if __name__ == "__main__":
                     print(f"INFO\t{clocktime()}\t{sid}\tSCENE\tDOWNLOAD")
                     for band in bands:
                         print(f"INFO\t{clocktime()}\t{sid}\t{band}\tSTART")
-                        output_path = os.path.join(output_folder, f"{sid}_{band}.tif")
+                        output_path = os.path.join(args.output, f"{sid}_{band}.tif")
                         to_float(imagery.get(band)).compute().odc.write_cog(output_path, overwrite=False)
                         print(f"INFO\t{clocktime()}\t{sid}\t{band}\tEND")
                     print(f"INFO\t{clocktime()}\t{sid}\tSCENE\tDONE")
