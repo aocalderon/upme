@@ -3,3 +3,6 @@ nohup.out
 *~
 bands/*
 tmp/*
+.RData
+.Rhistory
+.vscode/*
