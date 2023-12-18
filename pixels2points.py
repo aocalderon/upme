@@ -5,7 +5,7 @@ import pandas as pd
 def main(infile, outpath, coords, n):
     """Process infile block-by-block and write to a new file"""
 
-    filename = args.input.split(".")[0]
+    filename = args.input.split(".")[0].split("/")[-1]
     arr = filename.split("_")
     band = arr[-1]
     sid = "_".join(arr[:-1])
@@ -15,7 +15,7 @@ def main(infile, outpath, coords, n):
         with rasterio.open(infile) as src:
             # Update the profile to use blocks and allowing tiling...
             profile = src.profile
-            profile.update(blockxsize=2048, blockysize=2048, tiled=True)
+            profile.update(blockxsize=n, blockysize=n, tiled=True)
             print(profile)
 
             with rasterio.open("/tmp/t", "w", **profile) as dst:
@@ -27,6 +27,7 @@ def main(infile, outpath, coords, n):
 
                 # Let's iterate over the windows and generator...
                 for window, data in zip( windows, data_gen ):
+                    vals = data.flatten() # Extract pixel values...
 
                     # Create grids for each block...
                     X = np.arange(window.width)  + window.col_off
@@ -34,26 +35,21 @@ def main(infile, outpath, coords, n):
                     cols, rows = np.meshgrid(X, Y)
 
                     # Get data columns from the image with coordinates if required...
-                    if coords:
+                    if band == "B02":
                         xs, ys = rasterio.transform.xy(src.transform, rows, cols) 
-                        vals = data.flatten() # Extract pixel values...
                         lons = np.array(xs).flatten()
                         lats = np.array(ys).flatten()
                         d = {"lon": lons.astype(int), "lat": lats.astype(int), band: vals.astype(int)}
                     else:
-                        vals = data.flatten() # Extract pixel values...
                         d = {band: vals.astype(int)}
 
                     # Create the dataframe and filter out null values...
                     df = pd.DataFrame(d)
 
-                    #if not coords:
-                    #    df = df[(df[band] > 0.0)]
-
                     # Save data just for valid blocks...
                     if df.size > 0:
-                        outfile = f"{outpath}/BLOCK_{window.col_off}_{window.row_off}_{band}.tsv"
-                        print(f"Saving {outfile}...")
+                        outfile = f"{outpath}/{sid}_BLOCK_{window.col_off}_{window.row_off}_{band}.tsv"
+                        print(f"{outfile}")
                         df.to_csv(outfile, sep = "\t", index = False)
 
 if __name__ == "__main__":
