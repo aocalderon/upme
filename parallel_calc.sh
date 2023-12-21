@@ -1,4 +1,3 @@
 #!/bin/bash
 
-parallel -j $1 -k ./calc.sh :::: test.tsv ::: 02 03 04 05 06 07 08 11 12
-
+cat $1 | parallel -j $2 -k --colsep '\t' ./calc.sh {1} {2}
